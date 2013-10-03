@@ -1,0 +1,22 @@
+# VISUAL STUDIO
+
+*.suo
+*.Dotsettings.user
+obj
+bin
+
+_ReSharper*
+
+# NUGET
+packages
+
+# Intel VTune
+*.amplxeproj
+
+# UNACTIVATED FILTERS
+#*.nupkg
+#obj
+#bin
+#Release
+#Build
+#Debug
