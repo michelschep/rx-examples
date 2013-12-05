@@ -1,47 +1,65 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Data.SqlClient;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GoldCard.RxExamples {
-    class Program {
-        static void Main(string[] args) {
-            //Example1();
+namespace GoldCard.RxExamples
+{
+    class Program
+    {
+        static void Main()
+        {
+            // Example1();
             //Example2();
             //Example3();
             //Example4();
-            Example6();
+            //Example5();
+            //Example6();
+            Example7();
 
             Console.WriteLine("Press the ANY key please.");
             Console.ReadLine();
         }
 
-        private static void Example1() {
-            var observable = "Hello World".ToObservable();
+        /// <summary>
+        /// Observe source that emits stream of characters
+        /// </summary>
+        private static void Example1()
+        {
+            var observable = ObservableStreamOfCharacters("Hello World");
 
-            observable.Subscribe(DoSomething);
+            observable.Subscribe(DoSomethingWithChar);
         }
 
-        private static void Example2() {
+        private static IObservable<char> ObservableStreamOfCharacters(string content)
+        {
+            return content.ToObservable();
+        }
+
+        private static void Example2()
+        {
             var observable = "Hello World"
                 .ToObservable()
                 .Delay(new TimeSpan(0, 0, 0, 5));
 
-            observable.Subscribe(DoSomething);
+            observable.Subscribe(DoSomethingWithChar);
         }
 
-        private static void Example3() {
+        private static void Example3()
+        {
             var observable = new[] { 1, 2, 3, 4, 5, 6, 7, 8 }
                 .ToObservable()
                 .Where(x => x % 2 == 0)
                 .Delay(new TimeSpan(0, 0, 0, 5));
 
-            observable.Subscribe(DoSomethingWithInt);
+            observable.Subscribe(DoSomethingWithInteger);
         }
 
-        private static void Example4() {
+        private static void Example4()
+        {
             var observable = Observable.Generate(
                                     0,
                                     x => x < 1000,
@@ -51,10 +69,11 @@ namespace GoldCard.RxExamples {
                 .Where(x => x % 2 == 0)
                 .Delay(new TimeSpan(0, 0, 0, 5));
 
-            observable.Subscribe(DoSomethingWithInt);
+            observable.Subscribe(DoSomethingWithInteger);
         }
 
-        private static void Example5() {
+        private static void Example5()
+        {
             var observable = Observable.Generate(
                                     0,
                                     x => x < 1000,
@@ -64,36 +83,76 @@ namespace GoldCard.RxExamples {
                 .Delay(new TimeSpan(0, 0, 0, 5))
                 .Throttle(TimeSpan.FromSeconds(2));
 
-            observable.Subscribe(DoSomethingWithInt);
+            observable.Subscribe(DoSomethingWithInteger);
         }
-        
-        /// <summary>
-        /// Buffer
-        /// </summary>
-        private static void Example6() {
+
+        private static void Example6()
+        {
             var observable = new[] { 10, 12, 20, 24, 30, 6, 7, 8 }
                 .ToObservable()
                 .Buffer(2)
-                .Where(x=>x[1] > 1.10 * x[1])
-                .Select(x=>x[1])
+                .Where(x => x[1] > 1.10 * x[1])
+                .Select(x => x[1])
                 .Delay(new TimeSpan(0, 0, 0, 5));
 
-            observable.Subscribe(DoSomethingWithInt);
+            observable.Subscribe(DoSomethingWithInteger);
         }
+
+        private static void Example7()
+        {
+            var observable = GetTweets()
+                //.Where(t=>t.Contains("ajax"))
+                .Throttle(TimeSpan.FromSeconds(2));
+
+            observable.Subscribe(WriteTweet);
+        }
+
+        private static void WriteTweet(string tweet)
+        {
+            Console.WriteLine(tweet);
+        }
+
+
         //        private static void Example5() {
         //            var observable = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
         //                .ToObservable()
         //                .GroupBy(x => x % 2 == 0)
         //                .Delay(new TimeSpan(0, 0, 0, 5));
         //
-        //            observable.Subscribe(DoSomethingWithInt);
-        //        }
+        //            observable.Subscribe(DoSomethingWithInteger);
+        //        } 
 
-        private static void DoSomethingWithInt(int i) {
+        private static IObservable<string> GetTweets()
+        {
+
+            return Observable.Create<string>(
+                o =>
+                {
+                    var listener = new TcpListener(IPAddress.Any, 51111);
+                    listener.Start();
+
+                    using (TcpClient client = listener.AcceptTcpClient())
+                    using (NetworkStream n = client.GetStream())
+                    {
+                        while (true)
+                        {
+                            string message = new BinaryReader(n).ReadString();
+                            o.OnNext(message);
+                        }
+                    }
+                    listener.Stop();
+                    o.OnCompleted();
+                    return Disposable.Create(() => Console.WriteLine("--Disposed--"));
+                });
+        }
+
+        private static void DoSomethingWithInteger(int i)
+        {
             Console.WriteLine(i);
         }
 
-        private static void DoSomething(char c) {
+        private static void DoSomethingWithChar(char c)
+        {
             Console.WriteLine(c);
         }
     }
