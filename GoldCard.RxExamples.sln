@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpConsole", "TcpConsole\Tc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AexServer", "AexServer\AexServer.csproj", "{93C3797E-E51B-4060-8E78-9C887FFDB266}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aex", "Aex\Aex.csproj", "{432E7494-F2CF-4934-8FD4-7A6C0C440AE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{93C3797E-E51B-4060-8E78-9C887FFDB266}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93C3797E-E51B-4060-8E78-9C887FFDB266}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93C3797E-E51B-4060-8E78-9C887FFDB266}.Release|Any CPU.Build.0 = Release|Any CPU
+		{432E7494-F2CF-4934-8FD4-7A6C0C440AE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{432E7494-F2CF-4934-8FD4-7A6C0C440AE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{432E7494-F2CF-4934-8FD4-7A6C0C440AE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{432E7494-F2CF-4934-8FD4-7A6C0C440AE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

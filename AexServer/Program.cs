@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
+using Aex;
 
 namespace AexServer
 {
@@ -11,7 +12,7 @@ namespace AexServer
         {
             Console.WriteLine("Start AEX Server");
 
-            var fondsen = new Fonds[] {new Fonds("Aegon", 385.14)};
+            var fondsen = new Fonds[] {new Fonds("Aegon", 385.14m), new Fonds("Air France KLM", 7.282m), new Fonds("ING Groep", 9.242m), new Fonds("TNT Express", 6.298m)  };
 
             while (true)
             {
@@ -23,9 +24,9 @@ namespace AexServer
                         var writer = new BinaryWriter(n);
                         while (true)
                         {
-                            writer.Write(fondsen[0].ToString());
-                            writer.Flush();
-                            Thread.Sleep(100);
+                            EmitKoersen(fondsen, writer);
+                      
+                            Thread.Sleep(2000);
                         }
                     }
                 }
@@ -36,32 +37,21 @@ namespace AexServer
                 }
             }
         }
-    }
 
-    internal class Fonds
-    {
-        private readonly string _name;
-        private readonly double _koers;
-
-        public Fonds(string name, double koers)
+        private static void EmitKoersen(Fonds[] fondsen, BinaryWriter writer)
         {
-            _name = name;
-            _koers = koers;
-        }
+            var random = new Random();
+            Console.WriteLine("");
+            foreach (var fonds in fondsen)
+            {
+                var change = (decimal) random.NextDouble();
+                var sign = random.Next(-1, 2);
 
-        public string Name
-        {
-            get { return _name; }
-        }
-
-        public double Koers
-        {
-            get { return _koers; }
-        }
-
-        public override string ToString()
-        {
-            return String.Format("{0}:{1}", Name, Koers);
+                fonds.Koers = fonds.Koers + sign * change;
+                writer.Write(fonds.ToString());
+                writer.Flush();
+                Console.WriteLine(fonds);
+            }
         }
     }
 }

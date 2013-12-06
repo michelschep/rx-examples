@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TcpConsole
 {
@@ -12,8 +8,8 @@ namespace TcpConsole
     {
         static void Main(string[] args)
         {
-             using (TcpClient client = new TcpClient("localhost", 51111))
-             using (NetworkStream n = client.GetStream())
+             using (var client = new TcpClient("localhost", 51111))
+             using (var n = client.GetStream())
              {
                  var writer = new BinaryWriter(n);
                  while (true)

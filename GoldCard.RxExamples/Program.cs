@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Aex;
 
 namespace GoldCard.RxExamples
 {
@@ -12,16 +12,57 @@ namespace GoldCard.RxExamples
     {
         static void Main()
         {
+            //ExampleShowAllStocks();
+            //ExampleShowOneSpecificStock();
+            ExampleShowOnlyStockChanges();
+
             // Example1();
             //Example2();
             //Example3();
             //Example4();
             //Example5();
             //Example6();
-            Example7();
 
             Console.WriteLine("Press the ANY key please.");
             Console.ReadLine();
+        }
+
+        private static void ExampleShowAllStocks()
+        {
+            var observable = AexStream();
+
+            observable.Subscribe(writeStock);
+        }
+
+        private static void ExampleShowOneSpecificStock()
+        {
+            var observable = AexStream()
+                .Where(stock => stock.Name.Contains("ING"));
+
+            observable.Subscribe(writeStock);
+        }
+
+        private static void ExampleShowOnlyStockChanges()
+        {
+            var observable = AexStream()
+                .GroupBy(stock => stock.Name);
+
+            observable.Subscribe(g =>
+                {
+                    var changedStocks = g.Buffer(2);
+
+                    changedStocks.Subscribe(stocks =>
+                        {
+                            var diff = ((stocks[1].Koers - stocks[0].Koers) / stocks[0].Koers) * 100;
+                            if (diff > 1)
+                                Console.WriteLine("HIGHER  {0} {1:N2}%", stocks[0].Name.PadRight(20), diff);
+                            else if (diff < -1)
+                                Console.WriteLine("LOWER   {0} {1:N2}%", stocks[0].Name.PadRight(20), diff);
+                            //                            else
+                            //                                Console.WriteLine("EQUAL: {0}", s[0].Name);
+                        });
+                }
+                );
         }
 
         /// <summary>
@@ -98,18 +139,9 @@ namespace GoldCard.RxExamples
             observable.Subscribe(DoSomethingWithInteger);
         }
 
-        private static void Example7()
+        private static void writeStock(Fonds fonds)
         {
-            var observable = AexStream();
-                //.Where(t=>t.Contains("ajax"))
-                //.Throttle(TimeSpan.FromSeconds(2));
-
-            observable.Subscribe(WriteTweet);
-        }
-
-        private static void WriteTweet(string tweet)
-        {
-            Console.WriteLine(tweet);
+            Console.WriteLine("{0} {1}", DateTime.Now, fonds);
         }
 
 
@@ -122,10 +154,10 @@ namespace GoldCard.RxExamples
         //            observable.Subscribe(DoSomethingWithInteger);
         //        } 
 
-        private static IObservable<string> AexStream()
+        private static IObservable<Fonds> AexStream()
         {
 
-            return Observable.Create<string>(
+            return Observable.Create<Fonds>(
                 o =>
                 {
                     Console.WriteLine("Start AEX listener");
@@ -139,7 +171,7 @@ namespace GoldCard.RxExamples
                         while (true)
                         {
                             var message = new BinaryReader(n).ReadString();
-                            o.OnNext(message);
+                            o.OnNext(new Fonds(message));
                         }
                     }
                     listener.Stop();
