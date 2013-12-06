@@ -100,9 +100,9 @@ namespace GoldCard.RxExamples
 
         private static void Example7()
         {
-            var observable = GetTweets()
+            var observable = AexStream();
                 //.Where(t=>t.Contains("ajax"))
-                .Throttle(TimeSpan.FromSeconds(2));
+                //.Throttle(TimeSpan.FromSeconds(2));
 
             observable.Subscribe(WriteTweet);
         }
@@ -122,21 +122,23 @@ namespace GoldCard.RxExamples
         //            observable.Subscribe(DoSomethingWithInteger);
         //        } 
 
-        private static IObservable<string> GetTweets()
+        private static IObservable<string> AexStream()
         {
 
             return Observable.Create<string>(
                 o =>
                 {
+                    Console.WriteLine("Start AEX listener");
+
                     var listener = new TcpListener(IPAddress.Any, 51111);
                     listener.Start();
 
-                    using (TcpClient client = listener.AcceptTcpClient())
-                    using (NetworkStream n = client.GetStream())
+                    using (var client = listener.AcceptTcpClient())
+                    using (var n = client.GetStream())
                     {
                         while (true)
                         {
-                            string message = new BinaryReader(n).ReadString();
+                            var message = new BinaryReader(n).ReadString();
                             o.OnNext(message);
                         }
                     }

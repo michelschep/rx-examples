@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoldCard.RxExamples", "GoldCard.RxExamples\GoldCard.RxExamples.csproj", "{A52AC391-77D7-4ADC-907C-87307F035643}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpConsole", "TcpConsole\TcpConsole.csproj", "{9330D2A3-5364-4C19-9839-117CA5CF93E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AexServer", "AexServer\AexServer.csproj", "{93C3797E-E51B-4060-8E78-9C887FFDB266}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +21,10 @@ Global
 		{9330D2A3-5364-4C19-9839-117CA5CF93E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9330D2A3-5364-4C19-9839-117CA5CF93E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9330D2A3-5364-4C19-9839-117CA5CF93E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93C3797E-E51B-4060-8E78-9C887FFDB266}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93C3797E-E51B-4060-8E78-9C887FFDB266}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93C3797E-E51B-4060-8E78-9C887FFDB266}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93C3797E-E51B-4060-8E78-9C887FFDB266}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
