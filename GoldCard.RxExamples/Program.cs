@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -12,24 +13,40 @@ namespace GoldCard.RxExamples
     {
         static void Main()
         {
-            //ExampleShowAllStocks();
-            //ExampleShowOneSpecificStock();
-            ExampleShowOnlyStockChanges();
+            ExampleCountBytes();
 
-            // Example1();
-            //Example2();
-            //Example3();
-            //Example4();
-            //Example5();
-            //Example6();
+//            ExampleShowAllStocks();
+//            ExampleShowAllStocksWithDelay();
+//            ExampleShowOneSpecificStock();
+//            ExampleShowOnlyStockChanges();
+
+            //ExampleWithFastChars();
+            //ExampleWithIntegerStreamAndDelay();
+            //ExampleWithThrottle();
 
             Console.WriteLine("Press the ANY key please.");
             Console.ReadLine();
         }
 
+        private static void ExampleCountBytes()
+        {
+            var observable = ByteStream();
+
+
+            long counter = 0;
+            observable.Subscribe(i => ++counter, () => Console.WriteLine(counter));
+        }
+
         private static void ExampleShowAllStocks()
         {
             var observable = AexStream();
+
+            observable.Subscribe(writeStock);
+        }
+        
+        private static void ExampleShowAllStocksWithDelay()
+        {
+            var observable = AexStream().Delay(TimeSpan.FromSeconds(5));
 
             observable.Subscribe(writeStock);
         }
@@ -45,15 +62,16 @@ namespace GoldCard.RxExamples
         private static void ExampleShowOnlyStockChanges()
         {
             var observable = AexStream()
-                .GroupBy(stock => stock.Name);
+                .GroupBy(stock => stock.Name); // create multiple observable streams!
 
-            observable.Subscribe(g =>
+            observable.Subscribe(company =>
                 {
-                    var changedStocks = g.Buffer(2);
+                    var changedStocks = company.Buffer(2); // Keep the last two stock changes
 
                     changedStocks.Subscribe(stocks =>
                         {
                             var diff = ((stocks[1].Koers - stocks[0].Koers) / stocks[0].Koers) * 100;
+                            
                             if (diff > 1)
                                 Console.WriteLine("HIGHER  {0} {1:N2}%", stocks[0].Name.PadRight(20), diff);
                             else if (diff < -1)
@@ -68,28 +86,14 @@ namespace GoldCard.RxExamples
         /// <summary>
         /// Observe source that emits stream of characters
         /// </summary>
-        private static void Example1()
+        private static void ExampleWithFastChars()
         {
-            var observable = ObservableStreamOfCharacters("Hello World");
+            var observable = "Hello World".ToObservable();
 
             observable.Subscribe(DoSomethingWithChar);
         }
 
-        private static IObservable<char> ObservableStreamOfCharacters(string content)
-        {
-            return content.ToObservable();
-        }
-
-        private static void Example2()
-        {
-            var observable = "Hello World"
-                .ToObservable()
-                .Delay(new TimeSpan(0, 0, 0, 5));
-
-            observable.Subscribe(DoSomethingWithChar);
-        }
-
-        private static void Example3()
+        private static void ExampleWithIntegerStreamAndDelay()
         {
             var observable = new[] { 1, 2, 3, 4, 5, 6, 7, 8 }
                 .ToObservable()
@@ -99,65 +103,29 @@ namespace GoldCard.RxExamples
             observable.Subscribe(DoSomethingWithInteger);
         }
 
-        private static void Example4()
+        private static void ExampleWithThrottle()
         {
             var observable = Observable.Generate(
                                     0,
-                                    x => x < 1000,
+                                    x => x < 1000000000,
                                     x => x + 1,
                                     x => x,
-                                    x => TimeSpan.FromSeconds(3.0))
-                .Where(x => x % 2 == 0)
-                .Delay(new TimeSpan(0, 0, 0, 5));
+                                    x => TimeSpan.FromMilliseconds(1))
+                .Throttle(TimeSpan.FromMilliseconds(5));
 
             observable.Subscribe(DoSomethingWithInteger);
         }
 
-        private static void Example5()
+        private static void writeStock(Stock stock)
         {
-            var observable = Observable.Generate(
-                                    0,
-                                    x => x < 1000,
-                                    x => x + 1,
-                                    x => x,
-                                    x => TimeSpan.FromSeconds(1.0))
-                .Delay(new TimeSpan(0, 0, 0, 5))
-                .Throttle(TimeSpan.FromSeconds(2));
-
-            observable.Subscribe(DoSomethingWithInteger);
-        }
-
-        private static void Example6()
-        {
-            var observable = new[] { 10, 12, 20, 24, 30, 6, 7, 8 }
-                .ToObservable()
-                .Buffer(2)
-                .Where(x => x[1] > 1.10 * x[1])
-                .Select(x => x[1])
-                .Delay(new TimeSpan(0, 0, 0, 5));
-
-            observable.Subscribe(DoSomethingWithInteger);
-        }
-
-        private static void writeStock(Fonds fonds)
-        {
-            Console.WriteLine("{0} {1}", DateTime.Now, fonds);
+            Console.WriteLine("{0} Stock: {1}", DateTime.Now.ToLongTimeString(), stock);
         }
 
 
-        //        private static void Example5() {
-        //            var observable = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
-        //                .ToObservable()
-        //                .GroupBy(x => x % 2 == 0)
-        //                .Delay(new TimeSpan(0, 0, 0, 5));
-        //
-        //            observable.Subscribe(DoSomethingWithInteger);
-        //        } 
-
-        private static IObservable<Fonds> AexStream()
+        private static IObservable<Stock> AexStream()
         {
 
-            return Observable.Create<Fonds>(
+            return Observable.Create<Stock>(
                 o =>
                 {
                     Console.WriteLine("Start AEX listener");
@@ -171,11 +139,35 @@ namespace GoldCard.RxExamples
                         while (true)
                         {
                             var message = new BinaryReader(n).ReadString();
-                            o.OnNext(new Fonds(message));
+                            o.OnNext(new Stock(message));
                         }
                     }
                     listener.Stop();
                     o.OnCompleted();
+                    return Disposable.Create(() => Console.WriteLine("--Disposed--"));
+                });
+        }
+
+        private static IObservable<int> ByteStream()
+        {
+
+            return Observable.Create<int>(
+                o =>
+                {
+                    Console.WriteLine("Start byte listener");
+
+//                    using (var fs = new FileStream(@"C:\data\test.txt", FileMode.Open))
+                    using (var fs = new FileStream(@"C:\data\en_visual_studio_ultimate_2013_x86_dvd_3175319.iso", FileMode.Open))
+                    {
+                        int b;
+                        while ((b = fs.ReadByte()) != -1)
+                        {
+                            o.OnNext(b);
+                        }
+
+                    }
+                    o.OnCompleted();
+                    //        o.OnNext(b);
                     return Disposable.Create(() => Console.WriteLine("--Disposed--"));
                 });
         }

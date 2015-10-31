@@ -2,20 +2,20 @@ using System;
 
 namespace Aex
 {
-    public class Fonds
+    public class Stock
     {
         private readonly string _name;
         private decimal _koers;
         private DateTime _datetime;
 
-        public Fonds(string name, decimal koers)
+        public Stock(string name, decimal koers)
         {
             _name = name;
             _koers = koers;
             _datetime = DateTime.Now;
         }
 
-        public Fonds(string fonds)
+        public Stock(string fonds)
         {
             var items = fonds.Split('|');
 

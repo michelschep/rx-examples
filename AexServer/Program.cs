@@ -12,7 +12,7 @@ namespace AexServer
         {
             Console.WriteLine("Start AEX Server");
 
-            var fondsen = new Fonds[] {new Fonds("Aegon", 385.14m), new Fonds("Air France KLM", 7.282m), new Fonds("ING Groep", 9.242m), new Fonds("TNT Express", 6.298m)  };
+            var fondsen = new Stock[] {new Stock("Aegon", 385.14m), new Stock("Air France KLM", 7.282m), new Stock("ING Groep", 9.242m), new Stock("TNT Express", 6.298m)  };
 
             while (true)
             {
@@ -38,7 +38,7 @@ namespace AexServer
             }
         }
 
-        private static void EmitKoersen(Fonds[] fondsen, BinaryWriter writer)
+        private static void EmitKoersen(Stock[] fondsen, BinaryWriter writer)
         {
             var random = new Random();
             Console.WriteLine("");
